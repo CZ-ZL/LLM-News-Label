@@ -5,7 +5,7 @@ import re
 import docx
 
 # Set your DeepSeek API key and base URL
-openai.api_key = "sk-fcab93dba39946c2b213778dca7646ae"  # Replace with your actual API key
+openai.api_key = "API Key"  # Replace with your actual API key
 openai.api_base = "https://api.deepseek.com"
 
 # File paths: update as needed.
