@@ -6,7 +6,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Process some files.')
 parser.add_argument('--fx_file', type=str, required=True, help='Path to the FX data file')
 parser.add_argument('--news_file', type=str, required=True, help='Path to the news data file')
-
+parser.add_argument('--spread', type=float, required=True, help='threshold = 3 * spread')
 # 解析命令行参数
 args = parser.parse_args()
 
@@ -52,7 +52,8 @@ for idx, news in news_df.iterrows():
     initial_record = fx_window.iloc[0]
     initial_rate = initial_record['Rate']
     # Here we use a fixed spread value of 0.0005 (modify as needed)
-    threshold = 3 * 0.0000  
+    threshold = 3 * args.spread
+     
     final_record = fx_window.iloc[-1]
     final_rate = final_record['Rate']
     

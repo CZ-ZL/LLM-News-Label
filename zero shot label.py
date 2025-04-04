@@ -4,14 +4,26 @@ import pandas as pd
 import openai
 import re
 import docx
+import argparse
 
 # Set your DeepSeek API key and base URL
 openai.api_key = "sk-fcab93dba39946c2b213778dca7646ae"  # Replace with your actual API key
 openai.api_base = "https://api.deepseek.com"
 
-input_file = "C:\\Users\\29806\\Desktop\\test data.xlsx"
-prompt_file = "C:\\Users\\29806\Desktop\\News ELi train.xlsx"
-output_file = "C:\\Users\\29806\\Desktop\\Labeled_News zero shot.xlsx"
+parser = argparse.ArgumentParser(description='label news')
+parser.add_argument('--input_file', type=str, required=True, help='input file')
+parser.add_argument('--prompt_file', type=str, required=True, help='zero shot label file')
+parser.add_argument('--output_file', type=str, required=True, help='output file')
+
+# 解析命令行参数
+args = parser.parse_args()
+
+# 使用命令行参数替代硬编码的文件路径
+input_file = args.input_file
+prompt_file = args.prompt_file
+output_file = args.output_file
+
+
 def build_prompt_from_excel(filepath):
     """
     Reads an Excel file containing training examples with columns "News" and "label",
