@@ -1,1 +1,1 @@
-python "news label.py" --fx_file "C:\Users\29806\Desktop\2025 jan bid and ask.xlsx" --news_file "C:\Users\29806\Desktop\test data.xlsx" --spread 0.0005
+python "news label.py" --fx_file "Zero shot Training Currency File.xlsx" --news_file "Zero shot news file.xlsx" --spread 0.0005 --output_file"Zero shot news with label.xlsx"
