@@ -1,0 +1,1 @@
+python "news label.py" --fx_file "Zero shot Training Currency File.xlsx" --news_file "Zero shot news file.xlsx" --spread 0.0005 --output_file"Zero shot news with label.xlsx"
