@@ -1,1 +1,3 @@
 python "news label.py" --fx_file "2025 jan exchange rate.xlsx" --news_file "test data result.xlsx" --spread 0.0005 --output_file"test data result.xlsx"
+python LLM_Deepseek_labeling.py --input_file "C:\Users\29806\Desktop\test data.xlsx" --prompt_file "C:\Users\29806\Desktop\prompt_template.docx" --output_file "C:\Users\29806\Desktop\Labeled_News_Deepseek.xlsx"
+python "zero shot label.py" --input_file "C:\Users\29806\Desktop\test data.xlsx" --prompt_file "C:\Users\29806\Desktop\News ELi train.xlsx" --output_file "C:\Users\29806\Desktop\Labeled_News_ZeroShot.xlsx"
