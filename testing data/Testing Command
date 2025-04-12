@@ -1,4 +1,4 @@
-python "news label.py" --fx_file "2025 jan exchange rate.xlsx" --news_file "test data result.xlsx" --spread 0.0000 --output_file"market movement.xlsx"
-python LLM_Deepseek_labeling.py --input_file "test data result.xlsx" --prompt_file "LLM_Prompt.docx" --output_file "Labeled_News_Deepseek.xlsx"
-python "zero shot label.py" --input_file "test data result.xlsx" --prompt_file "News ELi test.xlsx" --output_file "Eli Labeled_News_ZeroShot.xlsx"
-python "zero shot label.py" --input_file "test data result.xlsx" --prompt_file "News Market test.xlsx" --output_file "Market Labeled_News_ZeroShot.xlsx"
+python .\LLM_Deepseek_labeling.py --input_file "test news file.xlsx" --prompt_file "LLM_Prompt.docx" --output_file "test news file.xlsx"
+python '.\zero shot label.py' --input_file "test news file.xlsx" --prompt_file "News ELi train.xlsx" --output_file "test news file.xlsx" --Label_column "Expert Label" 
+python '.\zero shot label.py' --input_file "test news file.xlsx" --prompt_file "News Market train.xlsx" --output_file "test news file.xlsx" --Label_column "Market Label" 
+python '.\news label.py' --fx_file "Zero Shot Exchange rate file.xlsx" --news_file "test news file.xlsx" --output_file "test news file.xlsx" --spread 0
