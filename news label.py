@@ -7,6 +7,7 @@ parser = argparse.ArgumentParser(description='Process some files.')
 parser.add_argument('--fx_file', type=str, required=True, help='Path to the FX data file')
 parser.add_argument('--news_file', type=str, required=True, help='Path to the news data file')
 parser.add_argument('--spread', type=float, required=True, help='threshold = 3 * spread')
+parser.add_argument('--output_file', type=str, required=True, help='Path to the output file')
 # 解析命令行参数
 args = parser.parse_args()
 
@@ -63,14 +64,14 @@ for idx, news in news_df.iterrows():
     
     # If the absolute rate change is less than the threshold, label as neutral
     if abs(r_change) < threshold:
-        labels.append("neutral")
+        labels.append("0")
         trading_periods.append(np.nan)
         continue
 
     # Determine the label:
     # "positive" if the rate decreased (i.e. CNH strengthened),
     # "negative" if the rate increased (i.e. CNH weakened)
-    label = "positive" if r_change < 0 else "negative"
+    label = "1" if r_change < 0 else "-1"
     
     # Find the first timestamp within the window where the rate change meets/exceeds the threshold
     tp = np.nan  # initialize trading period (in seconds)
@@ -92,18 +93,10 @@ for idx, news in news_df.iterrows():
 # - Rate_Change (the difference between the final and initial FX rate)
 # - Trading_Period_sec (the trading period in seconds)
 # - Label (the computed label)
-new_columns = {
-    'Time': news_df['Time'],
-    'Content': news_df['News'],
-    'Window_Start': window_starts,
-    'Window_End': window_ends,
-    'Rate_Change': rate_changes,
-    'Trading_Period_sec': trading_periods,
-    'Label': labels
-}
-new_df = pd.DataFrame(new_columns)
+news_df.drop(columns=['timestamp'], inplace=True)
+news_df['Market Direction'] = labels
 
 # Save the new DataFrame to a new Excel file
-output_path = "C:\\Users\\29806\\Desktop\\news_with_labels.xlsx"
-new_df.to_excel(output_path, index=False)
+output_path = args.output_file
+news_df.to_excel(output_path, index=False)
 print(f"New Excel file '{output_path}' has been created with Time, Content, Window_Start, Window_End, Rate_Change, Trading_Period_sec, and Label.")

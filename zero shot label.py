@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description='label news')
 parser.add_argument('--input_file', type=str, required=True, help='input file')
 parser.add_argument('--prompt_file', type=str, required=True, help='zero shot label file')
 parser.add_argument('--output_file', type=str, required=True, help='output file')
+parser.add_argument('--Label_column', type=str, required=True, help='column name')
 
 # 解析命令行参数
 args = parser.parse_args()
@@ -126,7 +127,7 @@ def main():
     
     # Create a new DataFrame for output.
     output_df = df.copy()
-    output_df["Label"] = numeric_labels
+    output_df[args.Label_column] = numeric_labels
     
     # Export the new DataFrame to a separate Excel file.
     output_df.to_excel(output_file, index=False)

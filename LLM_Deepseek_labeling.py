@@ -92,7 +92,7 @@ def main():
     
     # Process each news item.
     for index, row in df.iterrows():
-        news_item = row.iloc[1]
+        news_item = row["News"]
         if pd.isna(news_item):
             print(f"Row {index} is empty. Skipping...")
             numeric_labels.append(None)
@@ -113,7 +113,7 @@ def main():
     
     # Create a new DataFrame for output.
     output_df = df.copy()
-    output_df["Numeric Label"] = numeric_labels
+    output_df["LLM Prompt Label"] = numeric_labels
     
     # Export the new DataFrame to a separate Excel file.
     output_df.to_excel(output_file, index=False)
