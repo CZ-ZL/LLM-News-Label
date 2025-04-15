@@ -1,5 +1,5 @@
 python .\LLM_Deepseek_labeling.py --input_file "testing data/test news file.xlsx" --prompt_file "testing data/LLM_Prompt.docx" --output_file "testing data/test news file.xlsx"
-python '.\zero shot label.py' --input_file "testing data/test news file.xlsx" --prompt_file "News ELi test.xlsx" --output_file "testing data/test news file.xlsx" --Label_column "Expert Label" 
+python '.\zero shot label.py' --input_file "testing data/test news file.xlsx" --prompt_file "testing data/News ELi test.xlsx" --output_file "testing data/test news file.xlsx" --Label_column "Expert Label" 
 python '.\zero shot label.py' --input_file "testing data/test news file.xlsx" --prompt_file "testing data/News Market test.xlsx" --output_file "testing data/test news file.xlsx" --Label_column "Market Label" 
 python '.\news label.py' --fx_file "Zero Shot Exchange rate file.xlsx" --news_file "testing data/test news file.xlsx" --output_file "testing data/test news file.xlsx" --spread 0
 python '.\file clean.py' --input_file "testing data/test news file.xlsx" --output_file "testing data/test news result.xlsx"
