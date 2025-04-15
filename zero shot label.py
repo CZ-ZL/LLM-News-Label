@@ -51,7 +51,7 @@ def build_prompt_from_excel(filepath):
         # Skip rows with missing news or label.
         if pd.isna(news_text) or pd.isna(label_text):
             continue
-        prompt_parts.append(f"====\n{news_text}\n@@@@\n{label_text}\n====")
+        prompt_parts.append(f"====\n{news_text}\n@@@@\n{label_text}\n")
     
     prompt = "\n\n".join(prompt_parts)
     return prompt
@@ -71,7 +71,7 @@ def label_news_item(news_item):
         model="deepseek-chat",
         messages=[
             {"role": "system", "content": prompt_text},
-            {"role": "user", "content": f"====\n{news_item}\n@@@@"},
+            {"role": "user", "content": f"====\n{news_item}\n@@@@\n"},
         ],
         stream=False
     )
