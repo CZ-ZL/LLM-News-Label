@@ -1,15 +1,15 @@
 import pandas as pd
 import os
-import pandas as pd
-import openai
+import openai 
 import re
 import docx
 import argparse
-
+import time
+from openai.error import RateLimitError
 # Set your DeepSeek API key and base URL
-openai.api_key = "sk-fcab93dba39946c2b213778dca7646ae"  # Replace with your actual API key
-openai.api_base = "https://api.deepseek.com"
-
+#openai.api_key = "sk-fcab93dba39946c2b213778dca7646ae"  # Replace with your actual API key
+#openai.api_base = "https://api.deepseek.com"
+openai.api_key = os.getenv("OPENAI_API_KEY")
 parser = argparse.ArgumentParser(description='label news')
 parser.add_argument('--input_file', type=str, required=True, help='input file')
 parser.add_argument('--prompt_file', type=str, required=True, help='zero shot label file')
@@ -23,6 +23,19 @@ args = parser.parse_args()
 input_file = args.input_file
 prompt_file = args.prompt_file
 output_file = args.output_file
+
+
+
+def safe_label(item):
+    delay = 2
+    for _ in range(5):
+        try:
+            return label_news_item(item)
+        except RateLimitError:
+            print(f"wait {delay}s re try…")
+            time.sleep(delay)
+            delay *= 2
+    raise Exception("fail")
 
 
 def build_prompt_from_excel(filepath):
@@ -43,11 +56,11 @@ def build_prompt_from_excel(filepath):
     """
     # Read the Excel file (assuming headers are present).
     df = pd.read_excel(filepath, header=0)
-    
+    news_idx = df.columns.get_loc("News")
     prompt_parts = []
     for _, row in df.iterrows():
         news_text = row["News"]
-        label_text = row.iloc[1]
+        label_text = row.iloc[news_idx + 1]
         # Skip rows with missing news or label.
         if pd.isna(news_text) or pd.isna(label_text):
             continue
@@ -67,12 +80,14 @@ def label_news_item(news_item):
     """
     # Insert the news text into the prompt template.
     
-    response = openai.ChatCompletion.create(
-        model="deepseek-chat",
+    response =  openai.ChatCompletion.create(
+        model="gpt-4.1-mini-2025-04-14",
         messages=[
             {"role": "system", "content": prompt_text},
             {"role": "user", "content": f"====\n{news_item}\n@@@@\n"},
         ],
+            temperature=0,
+            max_tokens=1,
         stream=False
     )
     
@@ -115,8 +130,8 @@ def main():
         
         print(f"\nProcessing row {index}: {str(news_item)[:60]}...")
         try:
-            # Retrieve the label text from the API.
-            label_text_LLM = label_news_item(str(news_item))
+            # 使用safe_label函数来获取标签，它会自动处理API限制
+            label_text_LLM = safe_label(str(news_item))
             # Map the label text to its numeric equivalent.
             numeric_label = clean_label_response(label_text_LLM)
             numeric_labels.append(numeric_label)
