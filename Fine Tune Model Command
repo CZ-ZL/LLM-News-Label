@@ -1,1 +1,2 @@
- python '.\fine tune model.py' -i "test news Analysis.xlsx" -o "test news Analysis.xlsx" -n "News" -l "t=1" -m “ft:gpt-3.5-turbo-1106:personal:t-1:BaZjx9BB”    
+ python '.\fine tune model.py' -i "test news Analysis.xlsx" -o "test news Analysis.xlsx" -n "News" -l "t=1" -m "ft:gpt-3.5-turbo-1106:personal:t-1:BaZjx9BB"    
+ python '.\fine tune model.py' -i "test news Analysis.xlsx" -o "test news Analysis.xlsx" -n "News" -l "t=2" -m "ft:gpt-3.5-turbo-1106:personal:t-2:Baa2qz0Q" 
