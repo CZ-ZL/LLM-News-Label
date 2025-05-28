@@ -1,0 +1,1 @@
+python '.\general confusion matrix.py' -f "Signal analysis\test news Analysis.xlsx" -s "Sheet1" -actual-col "t=2.0,spread=0.00025" -pred-col "t=2" -savefig "confusion martix t=2.png"          
