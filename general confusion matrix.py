@@ -104,19 +104,24 @@ def main() -> None:
     y_true = df[args.actual_col]
     y_pred = df[args.pred_col]
 
+    ldf = pd.DataFrame({'y_true': y_true, 'y_pred': y_pred}).dropna()
+
+    filtered_y_true = ldf['y_true']
+    filtered_y_pred = ldf['y_pred']
+
     # 2️⃣  Compute confusion matrix
-    labels = sorted(set(y_true) | set(y_pred))
-    cm = confusion_matrix(y_true, y_pred, labels=labels)
+    labels = sorted(set(filtered_y_true) | set(filtered_y_pred))
+    cm = confusion_matrix(filtered_y_true, filtered_y_pred, labels=labels)
     cm = normalise(cm.astype(float), args.normalize.lower())
 
     # 3️⃣  Metrics
     average_modes = ["micro", "macro", "weighted"]
     metrics = {
-        "precision": {avg: precision_score(y_true, y_pred, average=avg)
+        "precision": {avg: precision_score(filtered_y_true, filtered_y_pred, average=avg)
                       for avg in average_modes},
-        "recall":    {avg: recall_score(y_true, y_pred, average=avg)
+        "recall":    {avg: recall_score(filtered_y_true, filtered_y_pred, average=avg)
                       for avg in average_modes},
-        "f1":        {avg: f1_score(y_true, y_pred, average=avg)
+        "f1":        {avg: f1_score(filtered_y_true, filtered_y_pred, average=avg)
                       for avg in average_modes},
     }
 
@@ -125,7 +130,7 @@ def main() -> None:
     print(pd.DataFrame(cm, index=labels, columns=labels))
     print("\nPer‑class metrics:")
     report_dict = classification_report(
-        y_true, y_pred, labels=labels, output_dict=True, digits=3
+        filtered_y_true, filtered_y_pred, labels=labels, output_dict=True, digits=3
     )
     print(pd.DataFrame(report_dict).T.round(3))
     print("Aggregate metrics:")
