@@ -1,1 +1,4 @@
 python3 'zero-shot fine tune model.py' -i "Signal Analysis/test news Analysis.xlsx" -o "Signal Analysis/test news Analysis.xlsx" -n "News" -l "t=3" -m "ft:gpt-3.5-turbo-1106:personal::BcFd0OLh"
+python3 'zero-shot fine tune model.py' -i "Signal Analysis/test news Analysis.xlsx" -o "Signal Analysis/test news Analysis.xlsx" -n "News" -l "t=5" -m "ft:gpt-3.5-turbo-1106:personal::BekcqkcP"
+python3 'zero-shot fine tune model.py' -i "Signal Analysis/test news Analysis.xlsx" -o "Signal Analysis/test news Analysis.xlsx" -n "News" -l "t=4" -m "ft:gpt-3.5-turbo-1106:personal::BejRxets"
+python3 'zero-shot fine tune model.py' -i "Signal Analysis/test news Analysis_eng.xlsx" -o "Signal Analysis/test news Analysis_eng.xlsx" -n "News" -l "t=5" -m "ft:gpt-3.5-turbo-1106:personal::Bf91HNrr"
