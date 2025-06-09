@@ -1,0 +1,57 @@
+import lseg.data as ld
+import pandas as pd
+import urllib.parse
+from IPython.display import HTML, display
+
+# Step 1: Open a session with the LSEG data service.
+ld.open_session()
+
+# Step 2: Retrieve headlines and reset index, then drop rows with missing values.
+news_df = ld.news.get_headlines(
+    query="CNH=",
+    start="2025-03-01",
+    end="2025-03-31",
+    count=10000
+)
+news_df = news_df.reset_index()
+news_df = news_df.dropna()
+
+# Step 3: Loop over story IDs, fetching story text or recording an error message.
+story_texts = []
+for idx, story_id in news_df['storyId'].iteritems():
+    try:
+        story_text = ld.news.get_story(story_id, format=ld.news.Format.TEXT)
+    except Exception as e:
+        story_text = f"Error retrieving story: {e}"
+    story_texts.append(story_text)
+news_df['StoryText'] = story_texts
+
+# Step 4: Drop rows where the story text indicates an error.
+news_df = news_df[~news_df['StoryText'].str.startswith("Error retrieving story:")]
+
+# Step 5: Rename 'versionCreated' to 'Time'.
+if 'versionCreated' in news_df.columns:
+    news_df = news_df.rename(columns={'versionCreated': 'Time'})
+else:
+    print("Warning: 'versionCreated' column not found in the DataFrame.")
+
+# Drop the columns 'storyId' and 'sourceCode' as specified.
+news_df = news_df.drop(columns=['storyId', 'sourceCode'])
+
+# (Optional) Inspect a few rows to verify Chinese text looks correct:
+print(news_df['StoryText'].head())
+
+# Step 6: Convert the DataFrame to CSV, specifying UTF-8 with BOM to preserve Chinese characters.
+csv_data = news_df.to_csv(index=False, encoding='utf-8-sig')
+
+# Step 7: URL-encode the CSV for safe embedding.
+csv_data_encoded = urllib.parse.quote(csv_data)
+
+# Step 8: Create an HTML download link.
+html_link = f'''
+<a download="refinitiv_news_download.csv" 
+   href="data:text/csv;charset=utf-8,{csv_data_encoded}">
+   Download CSV File
+</a>
+'''
+display(HTML(html_link))
