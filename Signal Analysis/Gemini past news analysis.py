@@ -24,7 +24,7 @@ from openpyxl import load_workbook
 
 # ──────────────────────────── CONFIG KNOBS ────────────────────────────── #
 
-DEFAULT_MODEL_ID    = "gemini-1.5-flash-32k"  # Default model to use
+DEFAULT_MODEL_ID    = "gemini-2.5-flash-preview-05-20"  # Default model to use
 LOOKBACK_HOURS     = 1                     # window for context retrieval
 N_EXAMPLES         = 30                     # max labelled rows passed to LLM
 MAX_OUTPUT_TOKENS  = 1                     # we only need "-1", "0", or "1"
@@ -33,15 +33,22 @@ SYSTEM_PROMPT      = (
 )
 
 # ────────────────────────── UTILITY FUNCTIONS ─────────────────────────── #
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"), transport="rest")
+model = genai.GenerativeModel(DEFAULT_MODEL_ID)
 
 def parse_iso(ts) -> datetime:
     """Handle both string timestamps and existing Timestamp objects."""
     if isinstance(ts, pd.Timestamp):
-        return ts.to_pydatetime()
-    if isinstance(ts, datetime):
-        return ts
-    dt = dtparse.parse(str(ts))
-    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+        dt = ts.to_pydatetime()
+    elif isinstance(ts, datetime):
+        dt = ts
+    else:
+        dt = dtparse.parse(str(ts))
+    
+    # Ensure all times are in UTC timezone
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
 
 def build_prompt(past_rows: pd.DataFrame, new_headline: str) -> str:
     """Assemble the prompt for Gemini API."""
@@ -56,28 +63,37 @@ def build_prompt(past_rows: pd.DataFrame, new_headline: str) -> str:
         "Respond with exactly one number: -1 (bearish), 0 (neutral), or 1 (bullish). "
         "Do not include any other text or explanation."
     )
+    print("\n" + "="*50 + "\nCurrent Prompt:\n" + "="*50)
+    print(prompt)
+    print("="*50 + "\n")
     return prompt
 
 def call_gemini(prompt: str, model_id: str) -> int:
     """Send prompt to Gemini and get sentiment label."""
     model = genai.GenerativeModel(model_id)
     try:
+        print(f"Analyzing with model {model_id}...")
         resp = model.generate_content(
             prompt,
             generation_config=dict(max_output_tokens=MAX_OUTPUT_TOKENS)
         )
-        return int(resp.text.strip())
+        result = int(resp.text.strip())
+        print(f"Model returned: {result}")
+        return result
     except ValueError:
         # Fallback: heuristic mapping
         txt = resp.text.lower()
         if "bear" in txt or "-" in txt:
+            print("Using heuristic rule: -1")
             return -1
         if "bull" in txt or "+" in txt:
+            print("Using heuristic rule: 1")
             return 1
+        print("Using heuristic rule: 0")
         return 0
     except Exception as e:
         print(f"Error calling Gemini API: {str(e)}")
-        return 0  # 发生错误时返回中性标签
+        return 0  # Return neutral label on error
 
 def safe_read_excel(file_path: str, sheet_name: str = "Sheet1") -> pd.DataFrame:
     """Safely read Excel file"""
@@ -92,12 +108,16 @@ def safe_write_excel(df: pd.DataFrame, file_path: str, sheet_name: str = "labels
     """Safely write to Excel file"""
     try:
         if os.path.exists(file_path):
-            # If file exists, read existing data first
-            existing_df = pd.read_excel(file_path, sheet_name=sheet_name)
-            # Merge data
-            combined_df = pd.concat([existing_df, df], ignore_index=True)
-            # Write merged data
-            combined_df.to_excel(file_path, sheet_name=sheet_name, index=False)
+            # If file exists, try to read existing data
+            try:
+                existing_df = pd.read_excel(file_path, sheet_name=sheet_name)
+                # Merge data
+                combined_df = pd.concat([existing_df, df], ignore_index=True)
+                # Write merged data
+                combined_df.to_excel(file_path, sheet_name=sheet_name, index=False)
+            except ValueError:
+                # If sheet doesn't exist, write to new sheet
+                df.to_excel(file_path, sheet_name=sheet_name, index=False)
         else:
             # If file doesn't exist, write directly
             df.to_excel(file_path, sheet_name=sheet_name, index=False)
@@ -112,23 +132,21 @@ def main(args):
 
     # Load historical database and normalize timestamps
     db = safe_read_excel(args.news_db)
-    # 检查时间列的类型并转换
-    if not isinstance(db["Time"].iloc[0], (pd.Timestamp, datetime)):
-        db["Time"] = db["Time"].apply(parse_iso)
-    else:
-        db["Time"] = db["Time"].apply(lambda x: x.to_pydatetime() if isinstance(x, pd.Timestamp) else x)
+    # Ensure all times are in UTC timezone
+    db["Time"] = db["Time"].apply(parse_iso)
 
     # Load incoming headlines (may be one or many)
     fresh = safe_read_excel(args.input_file)
-    # 检查时间列的类型并转换
-    if not isinstance(fresh["Time"].iloc[0], (pd.Timestamp, datetime)):
-        fresh["Time"] = fresh["Time"].apply(parse_iso)
-    else:
-        fresh["Time"] = fresh["Time"].apply(lambda x: x.to_pydatetime() if isinstance(x, pd.Timestamp) else x)
+    # Ensure all times are in UTC timezone
+    fresh["Time"] = fresh["Time"].apply(parse_iso)
 
     results = []
     for row in fresh.itertuples(index=False):
         window_start = row.Time - timedelta(hours=args.lookback)
+        # Ensure window_start is in UTC timezone
+        if window_start.tzinfo is None:
+            window_start = window_start.replace(tzinfo=timezone.utc)
+            
         ctx = (
             db[(db["Time"] >= window_start) &
                (db["Time"] <  row.Time)]
@@ -142,7 +160,7 @@ def main(args):
         except Exception as e:
             print(f"Error processing headline: {row.News[:60]}")
             print(f"Error details: {str(e)}")
-            label = 0  # 发生错误时使用中性标签
+            label = 0  # Use neutral label on error
         results.append(
             dict(Time=row.Time.isoformat(),
                  News=row.News,
