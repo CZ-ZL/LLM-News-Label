@@ -1,0 +1,1 @@
+python '.\Gemini past news analysis.py' --news_db "LLM-News-Label\Signal Analysis\t=5.0,spread=0.00025 with time.xlsx" --input_file "LLM-News-Label\Signal Analysis\t=5.0,spread=0.00025 no label.xlsx" --output_file "LLM-News-Label\Signal Analysis\t=5.0,spread=0.00025 no label.xlsx"
