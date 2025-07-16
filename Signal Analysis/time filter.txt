@@ -1,0 +1,55 @@
+import pandas as pd
+import argparse
+import os
+import pandas_market_calendars as mcal
+from datetime import time
+
+def get_us_market_holidays(start_date, end_date):
+    nyse = mcal.get_calendar('NYSE')
+    holidays = nyse.holidays().holidays
+    return holidays[(holidays >= pd.Timestamp(start_date)) & (holidays <= pd.Timestamp(end_date))]
+
+def filter_news(input_file, time_column='Timestamp', start='09:00', end='16:30'):
+    # Load data
+    df = pd.read_excel(input_file)
+    df[time_column] = pd.to_datetime(df[time_column])
+
+    # Set trading time range
+    start_time = pd.to_datetime(start).time()
+    end_time = pd.to_datetime(end).time()
+
+    # Get date range
+    min_date = df[time_column].min().date()
+    max_date = df[time_column].max().date()
+
+    # Get US market holidays
+    us_holidays = get_us_market_holidays(min_date, max_date)
+
+    # Filtering logic:
+    df_filtered = df[
+        df[time_column].dt.weekday < 5  # Weekdays Mon–Fri
+        & ~df[time_column].dt.normalize().isin(us_holidays)  # Not a holiday
+        & df[time_column].dt.time.between(start_time, end_time)  # Within time range
+    ]
+
+    # Output file name
+    filename, ext = os.path.splitext(input_file)
+    output_file = f"{filename}_{start.replace(':', '-')}-{end.replace(':', '-')}{ext}"
+
+    # Save result
+    df_filtered.to_excel(output_file, index=False)
+
+    print(f"✅ Input file: {input_file}")
+    print(f"🗓️ Time range: {start} - {end}, weekdays only, excluding US market holidays")
+    print(f"📁 Output file: {output_file}")
+    print(f"📰 Number of news retained: {len(df_filtered)}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Filter news by trading time, weekday and US market holidays.")
+    parser.add_argument("input_file", help="Path to the Excel file.")
+    parser.add_argument("--time_column", default="Timestamp", help="Name of the time column.")
+    parser.add_argument("--start", default="09:00", help="Start of trading time (HH:MM).")
+    parser.add_argument("--end", default="16:30", help="End of trading time (HH:MM).")
+
+    args = parser.parse_args()
+    filter_news(args.input_file, args.time_column, args.start, args.end)
