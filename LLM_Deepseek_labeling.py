@@ -5,7 +5,7 @@ import re
 import docx
 import argparse
 # Set your DeepSeek API key and base URL
-openai.api_key = "sk-fcab93dba39946c2b213778dca7646ae"  # Replace with your actual API key
+openai.api_key = os.getenv("deepseek_key") # Replace with your actual API key
 openai.api_base = "https://api.deepseek.com"
 
 parser = argparse.ArgumentParser(description='label news')
