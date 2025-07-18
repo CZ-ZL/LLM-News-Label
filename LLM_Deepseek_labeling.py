@@ -103,10 +103,13 @@ def main():
             # Retrieve the label text from the API.
             label_text = label_news_item(str(news_item))
             impact_str = extract_impact(label_text)
-            # Map the label text to its numeric equivalent.
-            numeric_label = map_impact_to_numeric(impact_str)
-            numeric_labels.append(numeric_label)
-            print(f"Row {index} label: {label_text} -> numeric label: {numeric_label}")
+           
+            impact_str = str(impact_str).strip()
+           
+            if impact_str not in ['1', '-1', '0']:
+                impact_str = '0'
+            numeric_labels.append(impact_str)
+            print(f"Row {index} label: {label_text} -> numeric label: {impact_str}")
         except Exception as e:
             print(f"Error processing row {index}: {e}")
             numeric_labels.append(None)
@@ -116,7 +119,7 @@ def main():
     output_df["LLM Prompt Label"] = numeric_labels
     
     # Export the new DataFrame to a separate Excel file.
-    output_df.to_excel(output_file, index=False)
+    output_df.to_excel(output_file, index=False, sheet_name='Sheet1')
     print(f"\nExported labeled news to {output_file}")
 
 if __name__ == "__main__":
