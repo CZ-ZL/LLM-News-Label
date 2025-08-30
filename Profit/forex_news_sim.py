@@ -117,8 +117,8 @@ def parse_args():
                    help="If USDCNY: price is CNY per 1 USD. If CNYUSD: price is USD per 1 CNY. Default USDCNY")
 
     # 模拟参数设置
-    p.add_argument("--initial_usd", type=float, default=100000.0, help="Starting USD cash (default 100,000)")
-    p.add_argument("--trade_amount_usd", type=float, default=1000.0, help="USD notional per trade (default 1,000)")
+    p.add_argument("--initial_usd", type=float, default=1000000.0, help="Starting USD cash (default 1,000,000)")
+    p.add_argument("--trade_amount_usd", type=float, default=10000.0, help="USD notional per trade (default 10,000)")
     p.add_argument("--hold_minutes", type=int, default=3, help="Hold duration in minutes (default 3)")
     p.add_argument("--hold_minutes_list", default=None,
                    help="Comma-separated hold durations to compare, e.g. '1,2,3,4,5,15'. If provided, outputs only comparison files.")
