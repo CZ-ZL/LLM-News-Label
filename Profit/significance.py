@@ -69,7 +69,7 @@ def main():
     probability = true_count / args.trials
     print(f"Trials: {args.trials}")
     print(f"True results: {true_count}")
-    print(f"Estimated probability trade history is NOT random: {probability:.6f}")
+    print(f"Estimated probability trade history is NOT random: {probability:.3f} (significance: {1-probability:.3f})")
 
 if __name__ == "__main__":
     main()

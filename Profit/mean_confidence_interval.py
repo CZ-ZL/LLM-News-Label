@@ -124,7 +124,12 @@ sample = read_pnl_usd(input_file)
 #                # line must contain values for previous sample
 #                sample += map(float,line.split())
 #infile.close()
-print(sample)
+print(f"{sample[0:5]=}")
+print(f"{sum(sample)=}")
+print(f"{len(sample)=}")
+print(f"{max(sample)=}")
+print(f"{min(sample)=}")
+
 observed_mean = mean(sample)
 
 num_resamples = 10000   # number of times we will resample from our original samples
