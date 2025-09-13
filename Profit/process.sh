@@ -1,0 +1,39 @@
+#!/bin/bash
+
+news_csv=("real_modified_p0_predictions.csv" "real_modified_p1_predictions.csv" "real_modified_p21s_predictions.csv" "2024 news file.csv" "2024 news file.csv" "2024 news file.csv")
+news_time_col=("Date" "Date" "Date" "Time" "Time" "Time")
+label_col=("pred_sentiment" "pred_sentiment" "pred_sentiment" "Expert Prompt Label" "Competitor Label" "Naive + Converted Prompt Label")
+label=("Naive p0" "Expert p1" "Expert p21s" "Expert" "Competitor" "Naive+")
+fx_csv=("real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv")
+fx_time_col=("Date" "Date" "Date" "Time" "Time" "Time")
+rate_col=("LastPrice" "LastPrice" "LastPrice" "Rate" "Rate" "Rate")
+quote_convention=("CNYUSD" "CNYUSD" "CNYUSD" "USDCNY" "USDCNY" "USDCNY")
+currency=("BRLUSD" "BRLUSD" "BRLUSD" "USDCNY" "USDCNY" "USDCNY")
+trade_amount=10000
+set -x
+echo currency,label,hold_minutes,trade_amount,pnl,trades,pnl_per_trade,significance,confidence_level,mean_lower,mean_upper,bias_mean_lower,bias_mean_upper,notes > process.csv
+
+for i in 0 1 2 3 4 5; do
+    #for hold_minutes in 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150; do
+    for hold_minutes in 5 10 20 30 60 90 120 150 180 210 240; do
+#    ./forex_news_sim.py --news_csv 2024\ news\ file.csv --news_time_col Time --label_col "Expert Prompt Label" --fx_csv 2024\ Training\ Currency\ File.csv --fx_time_col Time --rate_col "Rate" --hold_minutes 150 --trade_amount_usd 10000 --initial_usd 1000000 --allow_overlap --quote_convention USDCNY
+        echo $hold_minutes
+        date
+        ./forex_news_sim.py --news_csv "${news_csv[$i]}" --news_time_col "${news_time_col[$i]}" --label_col "${label_col[$i]}" --fx_csv "${fx_csv[$i]}" --fx_time_col "${fx_time_col[$i]}" --rate_col "${rate_col[$i]}" --hold_minutes $hold_minutes --trade_amount_usd $trade_amount --initial_usd 1000000 --allow_overlap --quote_convention ${quote_convention[$i]} > forex_out.txt
+        python3 significance.py > significance_out.txt
+        python3 mean_confidence_interval.py > mean_interval_out.txt
+        x=(`tail -1 forex_out.txt`)
+        pnl=${x[5]}
+        trades=${x[7]}
+        x=(`tail -1 significance_out.txt`)
+        significance=${x[9]}
+        x=(`tail -1 mean_interval_out.txt`)
+        confidence_level=${x[2]}
+        mean_lower=${x[10]}
+        mean_upper=${x[12]}
+        bias_mean_lower=${x[17]}
+        bias_mean_upper=${x[19]}
+	pnl_per_trade=$(echo "scale=4;$pnl/$trades"|bc)
+        echo ${currency[$i]},${label[$i]},$hold_minutes,$trade_amount,$pnl,$trades,$pnl_per_trade,$significance,$confidence_level,$mean_lower,$mean_upper,$bias_mean_lower,$bias_mean_upper,${news_csv[$i]} >> process.csv
+    done
+done
