@@ -182,10 +182,7 @@ bias_corr_upper_bound =  int(math.floor(num_resamples * (0.5 + sd_to_area(z_1_mi
 
 # print observed value and then confidence interval
 print ("Observed mean: %.2f" % observed_mean)
-print ("We have", conf_interval * 100, "% confidence that the true mean", end="")
-print (" is between: %.2f" % out[lower_bound], "and %.2f" % out[upper_bound])
-
-print ("***** Bias Corrected Confidence Interval *****")
-print ("We have", conf_interval * 100, "% confidence that the true mean", end="")
-print (" is between: %.2f" % out[bias_corr_lower_bound], "and %.2f" % out[bias_corr_upper_bound])
+print ("We have", conf_interval * 100, "confidence that the true mean", end="")
+print (" is between: %.2f" % out[lower_bound], "and %.2f" % out[upper_bound], end="")
+print (" bias corrected is between: %.2f" % out[bias_corr_lower_bound], "and %.2f" % out[bias_corr_upper_bound])
 

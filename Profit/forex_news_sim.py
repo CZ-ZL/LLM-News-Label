@@ -226,6 +226,10 @@ def load_fx(args) -> pd.DataFrame:
         df = df[[args.fx_time_col, args.rate_col]].copy()
         df[args.bid_col] = df[args.rate_col]
         df[args.ask_col] = df[args.rate_col]
+        print(f"{args.rate_col=}")
+        print(f"{args.bid_col=}")
+        print(f"{args.ask_col=}")
+        print(f"{args.fx_time_col=}")
     else:
         # 原有的bid/ask逻辑
         for c in [args.fx_time_col, args.bid_col, args.ask_col]:
@@ -287,9 +291,11 @@ def match_price_at(df_fx: pd.DataFrame, t: pd.Timestamp, args, side: str) -> Opt
             candidates.append(df_fx.iloc[idx])
         # pick the closer one
         if not candidates:
+            print(f"no match candidates {t=}")
             return None
         best = min(candidates, key=lambda r: abs((r[args.fx_time_col] - t).total_seconds()))
         if abs((best[args.fx_time_col] - t).total_seconds()) > args.time_tolerance_secs:
+            print(f"no match tolerance_secs {t=}")
             return None
         return (best[args.fx_time_col], float(best[args.bid_col]), float(best[args.ask_col]))
 
@@ -410,6 +416,7 @@ def simulate(args) -> Tuple[pd.DataFrame, pd.DataFrame, List[Position], dict]:
         # 检查标签是否有效
         if lab not in {args.signal_value_long, args.signal_value_short, args.signal_value_flat}:
             # Unknown label: skip
+            print(f"unknown label {lab=}")
             diag_unknown_label += 1
             continue
 
@@ -852,7 +859,7 @@ def main():
         print(f"Equity -> {args.equity_csv}")
         print(f"Plot   -> {args.equity_plot}")
         print(f"Summary-> {args.summary_txt}")
-        print(f"Final USD: {summary['final_usd']:.2f} | Total PnL: {summary['total_pnl_usd']:.2f} | Trades: {summary['n_trades']}")
+        print(f"Final USD: {summary['final_usd']:.2f} Total PnL: {summary['total_pnl_usd']:.2f} Trades: {summary['n_trades']}")
 
 # 程序入口点
 if __name__ == "__main__":
