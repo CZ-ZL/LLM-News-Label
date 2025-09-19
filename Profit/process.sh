@@ -19,7 +19,7 @@ for i in 0 1 2 3 4 5; do
 #    ./forex_news_sim.py --news_csv 2024\ news\ file.csv --news_time_col Time --label_col "Expert Prompt Label" --fx_csv 2024\ Training\ Currency\ File.csv --fx_time_col Time --rate_col "Rate" --hold_minutes 150 --trade_amount_usd 10000 --initial_usd 1000000 --allow_overlap --quote_convention USDCNY
         echo $hold_minutes
         date
-        ./forex_news_sim.py --news_csv "${news_csv[$i]}" --news_time_col "${news_time_col[$i]}" --label_col "${label_col[$i]}" --fx_csv "${fx_csv[$i]}" --fx_time_col "${fx_time_col[$i]}" --rate_col "${rate_col[$i]}" --hold_minutes $hold_minutes --trade_amount_usd $trade_amount --initial_usd 1000000 --allow_overlap --quote_convention ${quote_convention[$i]} > forex_out.txt
+        ./forex_news_sim.py --news_csv "${news_csv[$i]}" --news_time_col "${news_time_col[$i]}" --label_col "${label_col[$i]}" --fx_csv "${fx_csv[$i]}" --fx_time_col "${fx_time_col[$i]}" --rate_col "${rate_col[$i]}" --hold_minutes $hold_minutes --trade_amount_usd $trade_amount --initial_usd 1000000 --quote_convention ${quote_convention[$i]} > forex_out.txt
         python3 significance.py > significance_out.txt
         python3 mean_confidence_interval.py > mean_interval_out.txt
         x=(`tail -1 forex_out.txt`)
