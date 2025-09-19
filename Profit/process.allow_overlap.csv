@@ -1,0 +1,67 @@
+currency,label,hold_minutes,trade_amount,pnl,trades,pnl_per_trade,significance,confidence_level,mean_lower,mean_upper,bias_mean_lower,bias_mean_upper,notes
+BRLUSD,Naive p0,5,10000,58.00,257,.2256,0.365,90.0,-0.83,1.29,-0.82,1.30,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,10,10000,140.23,257,.5456,0.272,90.0,-0.88,2.00,-0.87,2.00,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,20,10000,301.15,257,1.1717,0.144,90.0,-0.66,2.97,-0.65,2.98,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,30,10000,455.74,257,1.7733,0.079,90.0,-0.35,3.86,-0.27,3.93,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,60,10000,624.99,257,2.4318,0.030,90.0,0.34,4.58,0.38,4.61,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,90,10000,405.75,257,1.5787,0.216,90.0,-1.73,4.86,-1.75,4.84,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,120,10000,1129.54,257,4.3950,0.057,90.0,-0.11,8.93,-0.20,8.85,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,150,10000,1610.32,257,6.2658,0.031,90.0,0.77,11.69,0.73,11.66,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,180,10000,1467.36,257,5.7095,0.055,90.0,-0.03,11.43,0.12,11.53,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,210,10000,1051.92,257,4.0930,0.154,90.0,-2.51,10.62,-2.37,10.73,real_modified_p0_predictions.csv
+BRLUSD,Naive p0,240,10000,761.53,257,2.9631,0.246,90.0,-3.97,10.00,-4.12,9.89,real_modified_p0_predictions.csv
+BRLUSD,Expert p1,5,10000,-246.06,189,-1.3019,0.967,90.0,-2.48,-0.12,-2.49,-0.13,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,10,10000,-326.31,189,-1.7265,0.962,90.0,-3.33,-0.14,-3.36,-0.17,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,20,10000,-181.20,189,-.9587,0.791,90.0,-2.90,0.92,-2.95,0.90,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,30,10000,46.94,189,.2483,0.429,90.0,-2.11,2.52,-2.07,2.55,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,60,10000,13.24,189,.0700,0.481,90.0,-2.43,2.54,-2.41,2.56,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,90,10000,53.77,189,.2844,0.454,90.0,-3.67,4.21,-3.83,4.08,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,120,10000,-127.24,189,-.6732,0.581,90.0,-6.09,4.67,-6.00,4.77,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,150,10000,709.92,189,3.7561,0.181,90.0,-3.08,10.51,-2.97,10.67,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,180,10000,755.62,189,3.9979,0.177,90.0,-3.15,11.05,-3.10,11.11,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,210,10000,223.23,189,1.1811,0.404,90.0,-6.79,9.20,-6.83,9.13,real_modified_p1_predictions.csv
+BRLUSD,Expert p1,240,10000,77.68,189,.4110,0.466,90.0,-8.18,9.00,-8.12,9.03,real_modified_p1_predictions.csv
+BRLUSD,Expert p21s,5,10000,-197.08,218,-.9040,0.910,90.0,-1.99,0.17,-1.98,0.18,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,10,10000,-164.81,218,-.7560,0.797,90.0,-2.26,0.73,-2.23,0.78,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,20,10000,43.59,218,.1999,0.432,90.0,-1.72,2.14,-1.76,2.10,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,30,10000,248.70,218,1.1408,0.201,90.0,-1.05,3.33,-0.99,3.38,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,60,10000,235.94,218,1.0822,0.227,90.0,-1.37,3.47,-1.35,3.48,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,90,10000,-93.53,218,-.4290,0.575,90.0,-4.18,3.36,-4.22,3.33,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,120,10000,472.02,218,2.1652,0.234,90.0,-2.62,7.06,-2.72,6.96,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,150,10000,1111.43,218,5.0983,0.083,90.0,-0.93,11.20,-0.89,11.23,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,180,10000,1581.65,218,7.2552,0.032,90.0,0.90,13.78,0.80,13.66,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,210,10000,1345.84,218,6.1735,0.080,90.0,-0.97,13.47,-1.00,13.44,real_modified_p21s_predictions.csv
+BRLUSD,Expert p21s,240,10000,1263.30,218,5.7949,0.111,90.0,-2.00,13.51,-2.16,13.31,real_modified_p21s_predictions.csv
+USDCNY,Expert,5,10000,63.07,964,.0654,0.091,90.0,-0.01,0.15,-0.01,0.15,2024 news file.csv
+USDCNY,Expert,10,10000,60.98,964,.0632,0.179,90.0,-0.05,0.17,-0.05,0.18,2024 news file.csv
+USDCNY,Expert,20,10000,-71.11,964,-.0737,0.796,90.0,-0.22,0.08,-0.22,0.08,2024 news file.csv
+USDCNY,Expert,30,10000,-73.54,964,-.0762,0.748,90.0,-0.27,0.11,-0.27,0.10,2024 news file.csv
+USDCNY,Expert,60,10000,292.55,964,.3034,0.140,90.0,-0.12,0.76,-0.08,0.80,2024 news file.csv
+USDCNY,Expert,90,10000,1028.98,964,1.0674,0.029,90.0,0.19,2.11,0.25,2.20,2024 news file.csv
+USDCNY,Expert,120,10000,705.10,964,.7314,0.217,90.0,-0.77,2.22,-0.80,2.18,2024 news file.csv
+USDCNY,Expert,150,10000,438.35,964,.4547,0.347,90.0,-1.43,2.30,-1.42,2.30,2024 news file.csv
+USDCNY,Expert,180,10000,690.94,964,.7167,0.302,90.0,-1.51,2.86,-1.56,2.83,2024 news file.csv
+USDCNY,Expert,210,10000,1494.91,964,1.5507,0.170,90.0,-1.11,4.17,-1.05,4.26,2024 news file.csv
+USDCNY,Expert,240,10000,1947.82,964,2.0205,0.129,90.0,-0.85,4.93,-0.87,4.91,2024 news file.csv
+USDCNY,Competitor,5,10000,-30.59,163,-.1876,0.972,90.0,-0.35,-0.03,-0.35,-0.03,2024 news file.csv
+USDCNY,Competitor,10,10000,-24.91,163,-.1528,0.852,90.0,-0.39,0.08,-0.39,0.07,2024 news file.csv
+USDCNY,Competitor,20,10000,-15.06,163,-.0923,0.678,90.0,-0.42,0.24,-0.42,0.24,2024 news file.csv
+USDCNY,Competitor,30,10000,-19.04,163,-.1168,0.680,90.0,-0.52,0.28,-0.53,0.27,2024 news file.csv
+USDCNY,Competitor,60,10000,-106.67,163,-.6544,0.774,90.0,-1.92,0.33,-2.11,0.23,2024 news file.csv
+USDCNY,Competitor,90,10000,-495.66,163,-3.0408,0.974,90.0,-5.98,-0.59,-6.35,-0.81,2024 news file.csv
+USDCNY,Competitor,120,10000,-697.82,163,-4.2811,0.990,90.0,-7.84,-1.31,-8.16,-1.51,2024 news file.csv
+USDCNY,Competitor,150,10000,-712.31,163,-4.3700,0.981,90.0,-8.07,-1.13,-8.41,-1.34,2024 news file.csv
+USDCNY,Competitor,180,10000,-951.95,163,-5.8401,0.952,90.0,-11.66,-0.49,-12.10,-0.81,2024 news file.csv
+USDCNY,Competitor,210,10000,-1260.28,163,-7.7317,0.974,90.0,-14.34,-1.50,-14.81,-1.77,2024 news file.csv
+USDCNY,Competitor,240,10000,-1485.63,163,-9.1142,0.985,90.0,-16.39,-2.58,-16.83,-2.90,2024 news file.csv
+USDCNY,Naive+,5,10000,-6.06,547,-.0110,0.578,90.0,-0.11,0.08,-0.10,0.08,2024 news file.csv
+USDCNY,Naive+,10,10000,-51.66,547,-.0944,0.870,90.0,-0.23,0.04,-0.23,0.04,2024 news file.csv
+USDCNY,Naive+,20,10000,-161.69,547,-.2955,0.995,90.0,-0.48,-0.11,-0.48,-0.12,2024 news file.csv
+USDCNY,Naive+,30,10000,-101.33,547,-.1852,0.921,90.0,-0.40,0.03,-0.40,0.03,2024 news file.csv
+USDCNY,Naive+,60,10000,120.09,547,.2195,0.218,90.0,-0.17,0.66,-0.14,0.70,2024 news file.csv
+USDCNY,Naive+,90,10000,775.98,547,1.4186,0.055,90.0,0.11,3.08,0.25,3.35,2024 news file.csv
+USDCNY,Naive+,120,10000,1750.88,547,3.2008,0.001,90.0,1.32,5.42,1.46,5.66,2024 news file.csv
+USDCNY,Naive+,150,10000,2005.35,547,3.6660,0.004,90.0,1.31,6.22,1.43,6.38,2024 news file.csv
+USDCNY,Naive+,180,10000,2726.01,547,4.9835,0.008,90.0,1.59,8.52,1.68,8.60,2024 news file.csv
+USDCNY,Naive+,210,10000,3531.62,547,6.4563,0.002,90.0,2.65,10.44,2.89,10.78,2024 news file.csv
+USDCNY,Naive+,240,10000,4222.64,547,7.7196,0.000,90.0,3.76,11.83,3.82,11.90,2024 news file.csv
