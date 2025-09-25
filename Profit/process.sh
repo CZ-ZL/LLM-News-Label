@@ -11,7 +11,7 @@ quote_convention=("CNYUSD" "CNYUSD" "CNYUSD" "USDCNY" "USDCNY" "USDCNY")
 currency=("BRLUSD" "BRLUSD" "BRLUSD" "USDCNY" "USDCNY" "USDCNY")
 trade_amount=10000
 set -x
-echo currency,label,hold_minutes,trade_amount,pnl,trades,pnl_per_trade,significance,confidence_level,mean_lower,mean_upper,bias_mean_lower,bias_mean_upper,notes > process.csv
+echo currency,label,hold_minutes,trade_amount,pnl,trades,pnl_per_trade,significance,confidence_level,mean_lower,mean_upper,bias_mean_lower,bias_mean_upper,sharpe,notes > process.csv
 OVERLAP="--allow_overlap"
 #OVERLAP=""
 for i in 0 1 2 3 4 5; do
@@ -29,6 +29,7 @@ for i in 0 1 2 3 4 5; do
         trades=${x[7]}
         x=(`tail -1 significance_out.txt`)
         significance=${x[9]}
+	sharpe=${x[11]}
         x=(`tail -1 mean_interval_out.txt`)
         confidence_level=${x[2]}
         mean_lower=${x[10]}
@@ -36,6 +37,6 @@ for i in 0 1 2 3 4 5; do
         bias_mean_lower=${x[17]}
         bias_mean_upper=${x[19]}
 	pnl_per_trade=$(echo "scale=4;$pnl/$trades"|bc)
-        echo ${currency[$i]},${label[$i]},$hold_minutes,$trade_amount,$pnl,$trades,$pnl_per_trade,$significance,$confidence_level,$mean_lower,$mean_upper,$bias_mean_lower,$bias_mean_upper,${news_csv[$i]} >> process.csv
+        echo ${currency[$i]},${label[$i]},$hold_minutes,$trade_amount,$pnl,$trades,$pnl_per_trade,$significance,$confidence_level,$mean_lower,$mean_upper,$bias_mean_lower,$bias_mean_upper,$sharpe,${news_csv[$i]} >> process.csv
     done
 done
