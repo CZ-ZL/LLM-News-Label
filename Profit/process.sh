@@ -1,22 +1,22 @@
 #!/bin/bash
 
-news_csv=("real_modified_p0_predictions.csv" "real_modified_p1_predictions.csv" "real_modified_p21s_predictions.csv" "2024 news file.csv" "2024 news file.csv" "2024 news file.csv")
-news_time_col=("Date" "Date" "Date" "Time" "Time" "Time")
-label_col=("pred_sentiment" "pred_sentiment" "pred_sentiment" "Expert Prompt Label" "Competitor Label" "Naive + Converted Prompt Label")
-label=("Naive p0" "Expert p1" "Expert p21s" "Expert" "Competitor" "Naive+")
-fx_csv=("real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv")
-fx_time_col=("Date" "Date" "Date" "Time" "Time" "Time")
-rate_col=("LastPrice" "LastPrice" "LastPrice" "Rate" "Rate" "Rate")
-quote_convention=("CNYUSD" "CNYUSD" "CNYUSD" "USDCNY" "USDCNY" "USDCNY")
-currency=("BRLUSD" "BRLUSD" "BRLUSD" "USDCNY" "USDCNY" "USDCNY")
+news_csv=("usdcnh-news-train.csv")
+news_time_col=("date")
+label_col=("competitor_label")
+label=("Competitor")
+fx_csv=("usdcnh-fx-train.csv")
+fx_time_col=("date")
+rate_col=("mid_price")
+quote_convention=("USDCNY")
+currency=("USDCNY")
 trade_amount=10000
 set -x
 echo currency,label,hold_minutes,trade_amount,pnl,trades,pnl_per_trade,significance,confidence_level,mean_lower,mean_upper,bias_mean_lower,bias_mean_upper,sharpe,notes > process.csv
-OVERLAP="--allow_overlap"
-#OVERLAP=""
-for i in 0 1 2 3 4 5; do
+# OVERLAP="--allow_overlap"
+OVERLAP=""
+for i in 0; do
     #for hold_minutes in 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150; do
-    for hold_minutes in 5 10 20 30 60 90 120 150 180 210 240; do
+    for hold_minutes in 5; do
 #    ./forex_news_sim.py --news_csv 2024\ news\ file.csv --news_time_col Time --label_col "Expert Prompt Label" --fx_csv 2024\ Training\ Currency\ File.csv --fx_time_col Time --rate_col "Rate" --hold_minutes 150 --trade_amount_usd 10000 --initial_usd 1000000 --allow_overlap --quote_convention USDCNY
         echo $hold_minutes
         date
