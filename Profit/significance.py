@@ -156,13 +156,13 @@ def compute_daily_returns(daily_pnl_by_date, initial_equity=1_000_000.0):
 
     return results
 
-def calculate_sharpe_ratio(returns, risk_free_rate=0.0, annualization_factor=1):
+def calculate_sharpe_ratio(returns, risk_free_rate=0.0001557, annualization_factor=1):
     """
     Calculates the Sharpe Ratio for a series of returns.
 
     Args:
         returns (list): A list of numerical returns (e.g., daily returns).
-        risk_free_rate (float): The risk-free rate of return. Defaults to 0.0.
+        risk_free_rate (float): The risk-free rate of return. Defaults to daily rate that compounds to 4% annually (approximately)
         annualization_factor (int): The factor to annualize the Sharpe Ratio.
                                    For daily returns, use 252 (trading days).
                                    For monthly returns, use 12. Defaults to 1 (no annualization).
@@ -223,10 +223,13 @@ def main():
     args = parser.parse_args()
 
     pnls = read_pnl_usd(args.file)
-
+    print(pnls[0:3])
 #    (min_datetime, max_datetime) = min_max_datetime(args.file)
-
     dr = compute_daily_returns(group_daily_pnl(read_trades(args.file)))
+    print(dr[0:3])
+    total_daily_pnl = sum([ i['daily_pnl'] for i in dr])
+    total_trade_days = len(dr)
+    annualized_return_percentage = 100*((total_daily_pnl * (252.0/float(total_trade_days)))/1_000_000.0)
     
     true_count = 0
     for _ in range(args.trials):
@@ -238,7 +241,7 @@ def main():
 
     print(f"Trials: {args.trials}")
     print(f"True results: {true_count}")
-    print(f"Estimated probability trade history is NOT random: {probability:.3f} significance: {1-probability:.3f} sharpe: {sr:.3f}")
+    print(f"Estimated probability trade history is NOT random: {probability:.3f} significance: {1-probability:.3f} sharpe: {sr:.3f} total_daily_pnl: {total_daily_pnl:.2f} total_trade_days: {total_trade_days} annualized_return_percentage: {annualized_return_percentage:.3f}")
 
 if __name__ == "__main__":
     main()

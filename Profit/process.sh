@@ -30,6 +30,9 @@ for i in 0; do
         x=(`tail -1 significance_out.txt`)
         significance=${x[9]}
 	sharpe=${x[11]}
+	total_daily_pnl=${x[13]}
+	total_trade_days=${x[15]}
+	annualized_return_percentage=${x[17]}
         x=(`tail -1 mean_interval_out.txt`)
         confidence_level=${x[2]}
         mean_lower=${x[10]}
@@ -37,6 +40,6 @@ for i in 0; do
         bias_mean_lower=${x[17]}
         bias_mean_upper=${x[19]}
 	pnl_per_trade=$(echo "scale=4;$pnl/$trades"|bc)
-        echo ${currency[$i]},${label[$i]},$hold_minutes,$trade_amount,$pnl,$trades,$pnl_per_trade,$significance,$confidence_level,$mean_lower,$mean_upper,$bias_mean_lower,$bias_mean_upper,$sharpe,${news_csv[$i]} >> process.csv
+        echo ${currency[$i]},${label[$i]},$hold_minutes,$trade_amount,$pnl,$trades,$pnl_per_trade,$significance,$confidence_level,$mean_lower,$mean_upper,$bias_mean_lower,$bias_mean_upper,$sharpe,$total_daily_pnl,$total_trade_days,$annualized_return_percentage,${news_csv[$i]} >> process.csv
     done
 done
