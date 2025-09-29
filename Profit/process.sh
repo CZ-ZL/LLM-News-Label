@@ -1,20 +1,21 @@
 #!/bin/bash
 
-news_csv=("real_modified_p0_predictions.csv" "real_modified_p1_predictions.csv" "real_modified_p21s_predictions.csv" "2024 news file.csv" "2024 news file.csv" "2024 news file.csv")
-news_time_col=("Date" "Date" "Date" "Time" "Time" "Time")
-label_col=("pred_sentiment" "pred_sentiment" "pred_sentiment" "Expert Prompt Label" "Competitor Label" "Naive + Converted Prompt Label")
-label=("Naive p0" "Expert p1" "Expert p21s" "Expert" "Competitor" "Naive+")
-fx_csv=("real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv")
-fx_time_col=("Date" "Date" "Date" "Time" "Time" "Time")
-rate_col=("LastPrice" "LastPrice" "LastPrice" "Rate" "Rate" "Rate")
-quote_convention=("CNYUSD" "CNYUSD" "CNYUSD" "USDCNY" "USDCNY" "USDCNY")
-currency=("BRLUSD" "BRLUSD" "BRLUSD" "USDCNY" "USDCNY" "USDCNY")
+news_csv=("real_modified_p0_predictions.csv" "real_modified_p1_predictions.csv" "real_modified_p21s_predictions.csv" "2024 news file.csv" "2024 news file.csv" "2024 news file.csv" "../../ml_fx_trading/dataset/usd-cnh-2024-train.csv")
+news_time_col=("Date" "Date" "Date" "Time" "Time" "Time" "date")
+label_col=("pred_sentiment" "pred_sentiment" "pred_sentiment" "Expert Prompt Label" "Competitor Label" "Naive + Converted Prompt Label" "naive_plus_prompt_converted_label")
+label=("Naive p0" "Expert p1" "Expert p21s" "Expert" "Competitor" "Naive+" "Naive+train")
+fx_csv=("real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv" "../../ml_fx_trading/dataset/usd-cnh-2024-train.csv")
+fx_time_col=("Date" "Date" "Date" "Time" "Time" "Time" "date")
+rate_col=("LastPrice" "LastPrice" "LastPrice" "Rate" "Rate" "Rate" "mid_price")
+quote_convention=("CNYUSD" "CNYUSD" "CNYUSD" "USDCNY" "USDCNY" "USDCNY" "USDCNY")
+currency=("BRLUSD" "BRLUSD" "BRLUSD" "USDCNY" "USDCNY" "USDCNY" "USDCNY")
 trade_amount=10000
 set -x
-echo currency,label,hold_minutes,trade_amount,pnl,trades,pnl_per_trade,significance,confidence_level,mean_lower,mean_upper,bias_mean_lower,bias_mean_upper,sharpe,notes > process.csv
+echo currency,label,hold_minutes,trade_amount,pnl,trades,pnl_per_trade,significance,confidence_level,mean_lower,mean_upper,bias_mean_lower,bias_mean_upper,sharpe,total_daily_pnl,total_trade_days,annualized_return_percentage,notes > process.csv
 OVERLAP="--allow_overlap"
 #OVERLAP=""
-for i in 0 1 2 3 4 5; do
+#for i in 0 1 2 3 4 5 6; do
+for i in 6; do    
     #for hold_minutes in 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150; do
     for hold_minutes in 5 10 20 30 60 90 120 150 180 210 240; do
 #    ./forex_news_sim.py --news_csv 2024\ news\ file.csv --news_time_col Time --label_col "Expert Prompt Label" --fx_csv 2024\ Training\ Currency\ File.csv --fx_time_col Time --rate_col "Rate" --hold_minutes 150 --trade_amount_usd 10000 --initial_usd 1000000 --allow_overlap --quote_convention USDCNY
@@ -30,6 +31,9 @@ for i in 0 1 2 3 4 5; do
         x=(`tail -1 significance_out.txt`)
         significance=${x[9]}
 	sharpe=${x[11]}
+	total_daily_pnl=${x[13]}
+	total_trade_days=${x[15]}
+	annualized_return_percentage=${x[17]}
         x=(`tail -1 mean_interval_out.txt`)
         confidence_level=${x[2]}
         mean_lower=${x[10]}
@@ -37,6 +41,6 @@ for i in 0 1 2 3 4 5; do
         bias_mean_lower=${x[17]}
         bias_mean_upper=${x[19]}
 	pnl_per_trade=$(echo "scale=4;$pnl/$trades"|bc)
-        echo ${currency[$i]},${label[$i]},$hold_minutes,$trade_amount,$pnl,$trades,$pnl_per_trade,$significance,$confidence_level,$mean_lower,$mean_upper,$bias_mean_lower,$bias_mean_upper,$sharpe,${news_csv[$i]} >> process.csv
+        echo ${currency[$i]},${label[$i]},$hold_minutes,$trade_amount,$pnl,$trades,$pnl_per_trade,$significance,$confidence_level,$mean_lower,$mean_upper,$bias_mean_lower,$bias_mean_upper,$sharpe,$total_daily_pnl,$total_trade_days,$annualized_return_percentage,${news_csv[$i]} >> process.csv
     done
 done
