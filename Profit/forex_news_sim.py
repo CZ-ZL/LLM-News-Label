@@ -122,7 +122,7 @@ def parse_args():
     p.add_argument("--hold_minutes", type=int, default=3, help="Hold duration in minutes (default 3)")
     p.add_argument("--hold_minutes_list", default=None,
                    help="Comma-separated hold durations to compare, e.g. '1,2,3,4,5,15'. If provided, outputs only comparison files.")
-    p.add_argument("--match_method", choices=["nearest", "ffill", "exact"], default="nearest",
+    p.add_argument("--match_method", choices=["nearest", "ffill", "exact", "next"], default="next",
                    help="How to match prices to timestamps (default nearest)")
     p.add_argument("--time_tolerance_secs", type=int, default=90,
                    help="Max allowed gap between signal time and matched price (seconds). Default 90s")
@@ -279,6 +279,17 @@ def match_price_at(df_fx: pd.DataFrame, t: pd.Timestamp, args, side: str) -> Opt
         # Check tolerance (how far back)
         dt = (t - row[args.fx_time_col]).total_seconds()
         if dt > args.time_tolerance_secs:
+            return None
+        return (row[args.fx_time_col], float(row[args.bid_col]), float(row[args.ask_col]))
+    elif args.match_method == "next":
+        # first quote at or AFTER t
+        idx = df_fx[args.fx_time_col].searchsorted(t, side="left")
+        if idx >= len(df_fx):
+            return None
+        row = df_fx.iloc[idx]
+        # enforce forward tolerance (how far we look ahead)
+        dt = (row[args.fx_time_col] - t).total_seconds()
+        if dt < 0 or dt > args.time_tolerance_secs:
             return None
         return (row[args.fx_time_col], float(row[args.bid_col]), float(row[args.ask_col]))
 
