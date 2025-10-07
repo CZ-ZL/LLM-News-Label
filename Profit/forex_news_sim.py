@@ -78,6 +78,7 @@ from typing import Optional, Tuple, List
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime as dt
 
 
 # 定义持仓数据类，用于存储交易信息
@@ -336,8 +337,26 @@ def cny_to_usd(cny: float, bid: float, ask: float, convention: str) -> float:
 # 主要的模拟函数，执行外汇新闻驱动的交易模拟
 def simulate(args) -> Tuple[pd.DataFrame, pd.DataFrame, List[Position], dict]:
     # 加载新闻和外汇数据
-    news = load_news(args)
-    fx = load_fx(args)
+    news_all = load_news(args)
+    fx_all = load_fx(args)
+
+    news_all = news_all[
+        (news_all[args.news_time_col].dt.time >= dt.time(9, 0)) &
+        (news_all[args.news_time_col].dt.time <= dt.time(17, 0))
+    ]
+
+    fx_all = fx_all[
+        (fx_all[args.fx_time_col].dt.time >= dt.time(9, 0)) &
+        (fx_all[args.fx_time_col].dt.time <= dt.time(17, 0))
+    ]
+
+    news_all["date_key"] = news_all[args.news_time_col].dt.date
+    fx_all["date_key"] = fx_all[args.fx_time_col].dt.date
+
+    pairs = [
+        (news_all[news_all["date_key"] == d].copy(), fx_all[fx_all["date_key"] == d].copy())
+        for d in sorted(set(news_all["date_key"]).intersection(set(fx_all["date_key"])))
+    ]
 
     # 初始化现金和持仓变量
     usd_cash = float(args.initial_usd)
@@ -349,7 +368,7 @@ def simulate(args) -> Tuple[pd.DataFrame, pd.DataFrame, List[Position], dict]:
     equity_points = []  # (time, equity_usd)
 
     # 诊断统计变量
-    diag_total_signals = int(len(news))
+    diag_total_signals = int(len(news_all))
     diag_unknown_label = 0
     diag_flat_signals = 0
     diag_actionable_signals = 0  # +1 or -1
@@ -360,12 +379,12 @@ def simulate(args) -> Tuple[pd.DataFrame, pd.DataFrame, List[Position], dict]:
     diag_insufficient_usd = 0
 
     # 获取外汇数据的时间范围
-    fx_time_min = fx[args.fx_time_col].min()
-    fx_time_max = fx[args.fx_time_col].max()
-    tol_delta = pd.Timedelta(seconds=int(args.time_tolerance_secs))
+    # fx_time_min = fx_all[args.fx_time_col].min()
+    # fx_time_max = fx_all[args.fx_time_col].max()
+    # tol_delta = pd.Timedelta(seconds=int(args.time_tolerance_secs))
 
     # 计算指定时间的权益值（包括未平仓头寸的市值）
-    def equity_at(t: pd.Timestamp) -> Optional[float]:
+    def equity_at(t: pd.Timestamp, fx: pd.DataFrame) -> Optional[float]:
         # Mark-to-market using nearest quote (mid) at time t
         m = match_price_at(fx, t, args, side="mark")
         if m is None:
@@ -383,7 +402,7 @@ def simulate(args) -> Tuple[pd.DataFrame, pd.DataFrame, List[Position], dict]:
         return usd_cash + cny_usd
 
     # 尝试平仓到期的持仓
-    def try_close_due_positions(cutoff_time: pd.Timestamp):
+    def try_close_due_positions(cutoff_time: pd.Timestamp, fx: pd.DataFrame):
         nonlocal usd_cash, cny_cash
         # Close any open positions whose exit_time <= cutoff_time
         still_open: List[Position] = []
@@ -412,7 +431,7 @@ def simulate(args) -> Tuple[pd.DataFrame, pd.DataFrame, List[Position], dict]:
                     pos.pnl_usd = pos.size_usd - usd_needed
                 positions.append(pos)
                 # Equity point at close
-                eqc = equity_at(mt)
+                eqc = equity_at(mt, fx)
                 if eqc is not None:
                     equity_points.append((mt, float(eqc)))
             else:
@@ -420,147 +439,150 @@ def simulate(args) -> Tuple[pd.DataFrame, pd.DataFrame, List[Position], dict]:
         open_positions[:] = still_open
 
     # 主循环：处理每个新闻信号
-    for idx, row in news.iterrows():
-        t_signal = row[args.news_time_col]
-        lab = str(row["_label_str"])
+    for news, fx in pairs:
+        for idx, row in news.iterrows():
+            t_signal = row[args.news_time_col]
+            lab = str(row["_label_str"])
 
-        # 检查标签是否有效
-        if lab not in {args.signal_value_long, args.signal_value_short, args.signal_value_flat}:
-            # Unknown label: skip
-            print(f"unknown label {lab=}")
-            diag_unknown_label += 1
-            continue
-
-        # 处理中性信号（不做任何交易）
-        if lab == args.signal_value_flat:
-            # record equity point and continue
-            eq = equity_at(t_signal)
-            if eq is not None:
-                equity_points.append((t_signal, float(eq)))
-            diag_flat_signals += 1
-            continue
-
-        # Before acting on new signal, close any due positions up to this signal time
-        try_close_due_positions(t_signal)
-
-        # If not allowing overlap and still have open positions, skip this signal
-        if (not args.allow_overlap) and open_positions:
-            diag_overlap_skipped += 1
-            continue
-
-        # Now evaluate new signal
-        diag_actionable_signals += 1
-
-        # Check if signal time lies within FX time range (+/- tolerance)
-        if (t_signal < (fx_time_min - tol_delta)) or (t_signal > (fx_time_max + tol_delta)):
-            diag_time_out_of_range += 1
-            continue
-
-        # 尝试匹配入场价格
-        m_entry = match_price_at(fx, t_signal, args, side="entry")
-        if m_entry is None:
-            # can't execute; skip
-            diag_entry_match_fail += 1
-            continue
-        t_quote, bid, ask = m_entry
-        diag_entry_matched += 1
-        exit_time = t_signal + pd.Timedelta(minutes=args.hold_minutes)
-
-        # 处理做多人民币信号
-        if lab == args.signal_value_long:
-            # Buy CNY with USD
-            if usd_cash < args.trade_amount_usd:
-                # Not enough USD cash; skip
-                diag_insufficient_usd += 1
+            # 检查标签是否有效
+            if lab not in {args.signal_value_long, args.signal_value_short, args.signal_value_flat}:
+                # Unknown label: skip
+                print(f"unknown label {lab=}")
+                diag_unknown_label += 1
                 continue
-            cny_bought = usd_to_cny(args.trade_amount_usd, bid, ask, args.quote_convention)
-            usd_cash -= args.trade_amount_usd
-            # Don't add to cny_cash - it's already tracked in the position
-            open_positions.append(Position(
-                side="LONG_CNY",
-                entry_time=t_quote,
-                exit_time=exit_time,
-                size_usd=float(args.trade_amount_usd),
-                entry_bid=float(bid),
-                entry_ask=float(ask),
-                cny_amount=float(cny_bought),
-            ))
-        # 处理做空人民币信号
-        elif lab == args.signal_value_short:
-            # Short CNY / Buy USD: borrow CNY, convert to USD now, repay later
-            # Choose borrowed CNY so that USD_received == trade_amount_usd at entry
-            if args.quote_convention == "USDCNY":
-                cny_borrow = args.trade_amount_usd * ask  # buy USD with CNY at ask
-                usd_received = cny_borrow / ask
-            else:  # CNYUSD
-                cny_borrow = args.trade_amount_usd / bid  # buy USD with CNY at bid (USD per CNY)
-                usd_received = cny_borrow * bid
 
-            usd_cash += usd_received  # should equal trade_amount_usd
-            open_positions.append(Position(
-                side="SHORT_CNY",
-                entry_time=t_quote,
-                exit_time=exit_time,
-                size_usd=float(args.trade_amount_usd),
-                entry_bid=float(bid),
-                entry_ask=float(ask),
-                cny_amount=float(-cny_borrow),  # negative indicates short (borrowed)
-            ))
+            # 处理中性信号（不做任何交易）
+            if lab == args.signal_value_flat:
+                # record equity point and continue
+                eq = equity_at(t_signal, fx)
+                if eq is not None:
+                    equity_points.append((t_signal, float(eq)))
+                diag_flat_signals += 1
+                continue
 
-        # Equity snapshot at entry
-        eq = equity_at(t_quote)
-        if eq is not None:
-            equity_points.append((t_quote, float(eq)))
+            # Before acting on new signal, close any due positions up to this signal time
+            try_close_due_positions(t_signal, fx)
 
-    # 平仓所有剩余的未平仓头寸
-    if open_positions:
-        # Ensure all positions with exit_time after last quote are closed using last available price fallback
-        for pos in sorted(open_positions, key=lambda p: p.exit_time):
-            m_exit = match_price_at(fx, pos.exit_time, args, side="final_exit")
-            if m_exit is None:
-                last = fx.iloc[-1]
-                m_exit = (last[args.fx_time_col], float(last[args.bid_col]), float(last[args.ask_col]))
-            mt, ebid, eask = m_exit
-            pos.exit_bid = ebid
-            pos.exit_ask = eask
-            if pos.side == "LONG_CNY":
-                # Convert position CNY back to USD
-                usd_recv = cny_to_usd(pos.cny_amount, ebid, eask, args.quote_convention)
-                usd_cash += usd_recv
-                # No need to modify cny_cash since position CNY was never in cny_cash
-                pos.pnl_usd = usd_recv - pos.size_usd
-            else:
-                cny_borrowed = -pos.cny_amount
+            # If not allowing overlap and still have open positions, skip this signal
+            if (not args.allow_overlap) and open_positions:
+                diag_overlap_skipped += 1
+                continue
+
+            # Now evaluate new signal
+            diag_actionable_signals += 1
+
+            # # Check if signal time lies within FX time range (+/- tolerance)
+            # if (t_signal < (fx_time_min - tol_delta)) or (t_signal > (fx_time_max + tol_delta)):
+            #     diag_time_out_of_range += 1
+            #     continue
+
+            # 尝试匹配入场价格
+            m_entry = match_price_at(fx, t_signal, args, side="entry")
+            if m_entry is None:
+                # can't execute; skip
+                diag_entry_match_fail += 1
+                continue
+            t_quote, bid, ask = m_entry
+            diag_entry_matched += 1
+            exit_time = t_signal + pd.Timedelta(minutes=args.hold_minutes)
+
+            # 处理做多人民币信号
+            if lab == args.signal_value_long:
+                # Buy CNY with USD
+                if usd_cash < args.trade_amount_usd:
+                    # Not enough USD cash; skip
+                    diag_insufficient_usd += 1
+                    continue
+                cny_bought = usd_to_cny(args.trade_amount_usd, bid, ask, args.quote_convention)
+                usd_cash -= args.trade_amount_usd
+                # Don't add to cny_cash - it's already tracked in the position
+                open_positions.append(Position(
+                    side="LONG_CNY",
+                    entry_time=t_quote,
+                    exit_time=exit_time,
+                    size_usd=float(args.trade_amount_usd),
+                    entry_bid=float(bid),
+                    entry_ask=float(ask),
+                    cny_amount=float(cny_bought),
+                ))
+            # 处理做空人民币信号
+            elif lab == args.signal_value_short:
+                # Short CNY / Buy USD: borrow CNY, convert to USD now, repay later
+                # Choose borrowed CNY so that USD_received == trade_amount_usd at entry
                 if args.quote_convention == "USDCNY":
-                    usd_needed = cny_borrowed / ebid
-                else:
-                    usd_needed = cny_borrowed * eask
-                usd_cash -= usd_needed
-                pos.pnl_usd = pos.size_usd - usd_needed
-            positions.append(pos)
-            eqc = equity_at(mt)
-            if eqc is not None:
-                equity_points.append((mt, float(eqc)))
-        open_positions = []
+                    cny_borrow = args.trade_amount_usd * ask  # buy USD with CNY at ask
+                    usd_received = cny_borrow / ask
+                else:  # CNYUSD
+                    cny_borrow = args.trade_amount_usd / bid  # buy USD with CNY at bid (USD per CNY)
+                    usd_received = cny_borrow * bid
 
-    # 最后，将剩余的人民币现金转换为美元
-    # Note: cny_cash should be 0.0 now since all CNY is tracked in positions
-    last = fx.iloc[-1]
-    last_bid, last_ask = float(last[args.bid_col]), float(last[args.ask_col])
-    if cny_cash != 0.0:
-        if cny_cash > 0:
-            usd_recv = cny_to_usd(cny_cash, last_bid, last_ask, args.quote_convention)
-            usd_cash += usd_recv
-            cny_cash = 0.0
-        else:
-            # Negative CNY cash (shouldn't happen) -> need to buy CNY to flat
-            cny_needed = -cny_cash
-            if args.quote_convention == "USDCNY":
-                usd_needed = cny_needed / last_bid
+                usd_cash += usd_received  # should equal trade_amount_usd
+                open_positions.append(Position(
+                    side="SHORT_CNY",
+                    entry_time=t_quote,
+                    exit_time=exit_time,
+                    size_usd=float(args.trade_amount_usd),
+                    entry_bid=float(bid),
+                    entry_ask=float(ask),
+                    cny_amount=float(-cny_borrow),  # negative indicates short (borrowed)
+                ))
+
+            # Equity snapshot at entry
+            eq = equity_at(t_quote, fx)
+            if eq is not None:
+                equity_points.append((t_quote, float(eq)))
+
+        # 平仓所有剩余的未平仓头寸
+        if open_positions:
+            # Ensure all positions with exit_time after last quote are closed using last available price fallback
+            for pos in sorted(open_positions, key=lambda p: p.exit_time):
+                m_exit = match_price_at(fx, pos.exit_time, args, side="final_exit")
+                if m_exit is None:
+                    last = fx.iloc[-1]
+                    m_exit = (last[args.fx_time_col], float(last[args.bid_col]), float(last[args.ask_col]))
+                mt, ebid, eask = m_exit
+                pos.exit_quote_time = mt
+                pos.exit_bid = ebid
+                pos.exit_ask = eask
+                if pos.side == "LONG_CNY":
+                    # Convert position CNY back to USD
+                    usd_recv = cny_to_usd(pos.cny_amount, ebid, eask, args.quote_convention)
+                    usd_cash += usd_recv
+                    # No need to modify cny_cash since position CNY was never in cny_cash
+                    pos.pnl_usd = usd_recv - pos.size_usd
+                else:
+                    cny_borrowed = -pos.cny_amount
+                    if args.quote_convention == "USDCNY":
+                        usd_needed = cny_borrowed / ebid
+                    else:
+                        usd_needed = cny_borrowed * eask
+                    usd_cash -= usd_needed
+                    pos.pnl_usd = pos.size_usd - usd_needed
+                positions.append(pos)
+                eqc = equity_at(mt, fx)
+                if eqc is not None:
+                    equity_points.append((mt, float(eqc)))
+            open_positions = []
+
+        # 最后，将剩余的人民币现金转换为美元
+        # Note: cny_cash should be 0.0 now since all CNY is tracked in positions
+        last = fx.iloc[-1]
+        last_bid, last_ask = float(last[args.bid_col]), float(last[args.ask_col])
+        if cny_cash != 0.0:
+            print(f"cny_cash: {cny_cash}")
+            if cny_cash > 0:
+                usd_recv = cny_to_usd(cny_cash, last_bid, last_ask, args.quote_convention)
+                usd_cash += usd_recv
+                cny_cash = 0.0
             else:
-                usd_needed = cny_needed * last_ask
-            usd_cash -= usd_needed
-            cny_cash = 0.0
+                # Negative CNY cash (shouldn't happen) -> need to buy CNY to flat
+                cny_needed = -cny_cash
+                if args.quote_convention == "USDCNY":
+                    usd_needed = cny_needed / last_bid
+                else:
+                    usd_needed = cny_needed * last_ask
+                usd_cash -= usd_needed
+                cny_cash = 0.0
 
     # 构建交易数据框
     if positions:
