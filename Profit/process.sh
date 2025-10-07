@@ -1,20 +1,20 @@
 #!/bin/bash
 
-news_csv=("real_modified_p0_predictions.csv" "real_modified_p1_predictions.csv" "real_modified_p21s_predictions.csv" "2024 news file.csv" "2024 news file.csv" "2024 news file.csv" "../../ml_fx_trading/dataset/usd-cnh-2024-train.csv")
-news_time_col=("Date" "Date" "Date" "Time" "Time" "Time" "date")
-label_col=("pred_sentiment" "pred_sentiment" "pred_sentiment" "Expert Prompt Label" "Competitor Label" "Naive + Converted Prompt Label" "naive_plus_prompt_converted_label")
-label=("Naive p0" "Expert p1" "Expert p21s" "Expert" "Competitor" "Naive+" "Naive+train")
-fx_csv=("real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "real_modified_exchange_rate_nov_jan.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv" "../../ml_fx_trading/dataset/usd-cnh-2024-train.csv")
-fx_time_col=("Date" "Date" "Date" "Time" "Time" "Time" "date")
-rate_col=("LastPrice" "LastPrice" "LastPrice" "Rate" "Rate" "Rate" "mid_price")
-quote_convention=("CNYUSD" "CNYUSD" "CNYUSD" "USDCNY" "USDCNY" "USDCNY" "USDCNY")
-currency=("BRLUSD" "BRLUSD" "BRLUSD" "USDCNY" "USDCNY" "USDCNY" "USDCNY")
+news_csv=("real_modified_p0_preds.train.csv" "real_modified_p1_preds.train.csv" "real_modified_p2_preds.train.csv" "2024 news file.csv" "2024 news file.csv" "2024 news file.csv" "real_modified_eli_preds.csv")
+news_time_col=("Date" "Date" "Date" "Time" "Time" "Time" "Date")
+label_col=("pred_sentiment" "pred_sentiment" "pred_sentiment" "Expert Prompt Label" "Competitor Label" "Naive + Converted Prompt Label" "pred_sentiment")
+label=("Naive p0" "Expert p1" "Expert p21s" "Expert" "Competitor" "Naive+" "Eli")
+fx_csv=("usdbrl-fx-test.csv" "usdbrl-fx-test.csv" "usdbrl-fx-test.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv" "2024 Training Currency File.csv" "usdbrl-fx-test.csv")
+fx_time_col=("date" "date" "date" "Time" "Time" "Time" "date")
+rate_col=("mid_price" "mid_price" "mid_price" "Rate" "Rate" "Rate" "mid_price")
+quote_convention=("USDCNY" "USDCNY" "USDCNY" "USDCNY" "USDCNY" "USDCNY" "CNYUSD")
+currency=("USDBRL" "USDBRL" "USDBRL" "USDCNY" "USDCNY" "USDCNY" "USDBRL")
 trade_amount=10000
 set -x
 echo currency,label,hold_minutes,trade_amount,pnl,trades,pnl_per_trade,significance,confidence_level,mean_lower,mean_upper,bias_mean_lower,bias_mean_upper,sharpe,total_daily_pnl,total_trade_days,annualized_return_percentage,notes > process.csv
 OVERLAP="--allow_overlap"
 #OVERLAP=""
-#for i in 0 1 2 3 4 5 6; do
+#for i in 0 1 2 3 4 5; do
 for i in 6; do    
     #for hold_minutes in 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150; do
     for hold_minutes in 5 10 20 30 60 90 120 150 180 210 240; do
@@ -22,6 +22,8 @@ for i in 6; do
         echo $hold_minutes
         date
         ./forex_news_sim.py --news_csv "${news_csv[$i]}" --news_time_col "${news_time_col[$i]}" --label_col "${label_col[$i]}" --fx_csv "${fx_csv[$i]}" --fx_time_col "${fx_time_col[$i]}" --rate_col "${rate_col[$i]}" --hold_minutes $hold_minutes --trade_amount_usd $trade_amount --initial_usd 1000000 --quote_convention ${quote_convention[$i]} $OVERLAP > forex_out.txt
+	cp forex_out.txt output/"out.${label[$i]}.${hold_minutes}.${OVERLAP}.txt"
+	cp summary.txt output/"summary.${label[$i]}.${hold_minutes}.${OVERLAP}.txt"
         python3 significance.py > significance_out.txt
         python3 mean_confidence_interval.py > mean_interval_out.txt
 	python3 plot_time_of_day.py trades.csv entry_time pnl_usd --output "plots/${label[$i]}.${hold_minutes}.$OVERLAP.png"
